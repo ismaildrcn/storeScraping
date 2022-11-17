@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 
 # Form implementation generated from reading ui file 'commentScraping.ui'
 #
@@ -9,10 +10,10 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from trendyolScraping.scraping import scrapingData
+from trendyolScraping.scraping import trendyolScraping
 
 
-class Ui_MainWindow(scrapingData):
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(780, 440)
@@ -262,6 +263,29 @@ class Ui_MainWindow(scrapingData):
         messageBox.setWindowTitle(mType)
         messageBox.setStandardButtons(buttonStatus)
         retval = messageBox.exec_()
+
+    def readURL(self):
+        if self.lineEditUrl.text() == "":
+            self.message("Warning", "Please enter a link")
+
+        else:
+            url = self.lineEditUrl.text().split("/")[2]
+            if url == "www.trendyol.com":
+                self.process("Systems are being prepared to extract data from Trendyol.")
+                time.sleep(1)
+                trendyolScraping(str(self.lineEditUrl.text()))
+
+            elif url == "www.hepsiburada.com":
+                pass
+            elif url == "www.n11.com":
+                pass
+            else:
+                self.message("Critical",
+                             "The link you entered is out of the workspace!\nPlease try to scrape data only for Trendyol, Hepsiburada and N11.\nYour link: {}".format(url))
+
+    def process(self,processInfo):
+        self.textBrowserOngoing.clear()
+        self.textBrowserOngoing.setText(processInfo)
 
 
     def retranslateUi(self, MainWindow):
