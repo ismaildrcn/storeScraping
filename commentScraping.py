@@ -244,6 +244,24 @@ class Ui_MainWindow(scrapingData):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.pushButtonStart.clicked.connect(self.readURL)
+
+    def message(self, mType, message, buttonStatus = QtWidgets.QMessageBox.Ok):
+        messageBox = QtWidgets.QMessageBox()
+        # <------ Information / Warning / Question / Critical ------>
+        if mType == "Information":
+            messageBox.setIcon(QtWidgets.QMessageBox.Information)
+        elif mType == "Warning":
+            messageBox.setIcon(QtWidgets.QMessageBox.Warning)
+        elif mType == "Question":
+            messageBox.setIcon(QtWidgets.QMessageBox.Question)
+        elif mType == "Critical":
+            messageBox.setIcon(QtWidgets.QMessageBox.Critical)
+
+        messageBox.setText(message)
+        messageBox.setWindowTitle(mType)
+        messageBox.setStandardButtons(buttonStatus)
+        retval = messageBox.exec_()
 
 
     def retranslateUi(self, MainWindow):
