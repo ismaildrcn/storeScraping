@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 
 # Form implementation generated from reading ui file 'commentScraping.ui'
 #
@@ -10,7 +9,9 @@ import time
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from trendyolScraping.scraping import trendyolScraping
+from storeScraping.scraping import trendyolScraping, hepsiburadaScraping
+import time
+import pandas as pd
 
 
 class Ui_MainWindow(object):
@@ -82,7 +83,7 @@ class Ui_MainWindow(object):
         self.textBrowserSomeData.setGeometry(QtCore.QRect(20, 190, 451, 191))
         font = QtGui.QFont()
         font.setFamily("Tahoma")
-        font.setPointSize(14)
+        font.setPointSize(11)
         self.textBrowserSomeData.setFont(font)
         self.textBrowserSomeData.setStyleSheet("QTextBrowser{\n"
 "    color: rgb(255, 255, 255); \n"
@@ -244,8 +245,10 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-        self.pushButtonStart.clicked.connect(self.readURL)
+        try:
+            self.pushButtonStart.clicked.connect(self.readURL)
+        except:
+            self.processInfo("Something went wrong")
 
     def message(self, mType, message, buttonStatus = QtWidgets.QMessageBox.Ok):
         messageBox = QtWidgets.QMessageBox()
@@ -265,28 +268,49 @@ class Ui_MainWindow(object):
         retval = messageBox.exec_()
 
     def readURL(self):
+        lastTime = time.time()
         if self.lineEditUrl.text() == "":
             self.message("Warning", "Please enter a link")
 
         else:
             url = self.lineEditUrl.text().split("/")[2]
             if url == "www.trendyol.com":
-                self.process("Systems are being prepared to extract data from Trendyol.")
-                time.sleep(1)
-                trendyolScraping(str(self.lineEditUrl.text()))
-
+                timeIsUp = self.timer(lastTime, 3)
+                print(lastTime)
+                if timeIsUp == True:
+                    df = trendyolScraping(str(self.lineEditUrl.text()))
+                    writeDf = """
+                    {}
+                    """.format(df.head())
+                    self.processInfo("Extracting data from Trendyol has been successfully completed.")
+                    self.textBrowserSomeData.setText(writeDf.lstrip())
             elif url == "www.hepsiburada.com":
-                pass
+                timeIsUp = self.timer(lastTime, 3)
+                if timeIsUp == True:
+                    df = hepsiburadaScraping(self.lineEditUrl.text())
+                    writeDf = """
+                    {}
+                    """.format(df.head())
+                    self.processInfo("Extracting data from Hepsiburada has been successfully completed.")
+                    self.textBrowserSomeData.setText(writeDf.lstrip())
+
             elif url == "www.n11.com":
-                pass
+                self.processInfo("Systems are being prepared to extract data from N11.")
+
             else:
                 self.message("Critical",
                              "The link you entered is out of the workspace!\nPlease try to scrape data only for Trendyol, Hepsiburada and N11.\nYour link: {}".format(url))
 
-    def process(self,processInfo):
+    def processInfo(self,process):
         self.textBrowserOngoing.clear()
-        self.textBrowserOngoing.setText(processInfo)
+        self.textBrowserOngoing.setText(process)
 
+    def timer(self, lastTime, delay):
+        while True:
+            if time.time() - lastTime < delay: continue
+            elif time.time() - lastTime > delay:
+                timeIsUp = True
+                return timeIsUp
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
