@@ -47,7 +47,6 @@ def hepsiburadaScraping(url):
     lastPageList = []
     commentList = []
     commentDateList = []
-    #url = "https://www.hepsiburada.com/moodcase-apple-iphone-11-penguen-ve-ayicik-desenli-seffaf-telefon-kilifi-p-hbv00000upk7s"
     browser = webdriver.Chrome()
     browser.maximize_window()
     fullUrl = url + "-yorumlari"
@@ -64,7 +63,7 @@ def hepsiburadaScraping(url):
         time.sleep(3)
 
         comments = browser.find_elements_by_css_selector(".hermes-ReviewCard-module-KaU17BbDowCWcTZ9zzxw")
-        dates = browser.find_elements_by_css_selector(".hermes-ReviewCard-module-WROMVGVqxBDYV9UkBWTS")
+        commentDates = browser.find_elements_by_css_selector(".hermes-ReviewCard-module-WROMVGVqxBDYV9UkBWTS")
 
         for comment in range(len(comments)):
             if browser.current_url == fullUrl:
@@ -72,10 +71,7 @@ def hepsiburadaScraping(url):
                 break
             else:
                 commentList.append(comments[comment].text.split("\n")[0])
-                commentDateList.append(dates[comment].text.split(",")[0])
-                print(str(pageCounter) + "\n-----------------------------------------------")
-                print(dates[comment].text.split(",")[0])
-                print(comments[comment].text.split("\n")[0])
+                commentDateList.append(commentDates[comment].text.split(",")[0])
 
         pageCounter += 1
 
@@ -89,3 +85,67 @@ def hepsiburadaScraping(url):
     browser.close()
     return df
 
+def amazonTrScraping(url):
+    browser = webdriver.Chrome()
+    browser.maximize_window()
+    fullUrl = url.split("?")[0]
+    fullUrl = fullUrl.replace("dp", "product-reviews")
+    browser.get(fullUrl)
+    numOfCommentSelect = browser.find_element_by_xpath("//*[@id='filter-info-section']/div")
+    numberOfComment = numOfCommentSelect.text.split(", ")[1].split(" ")[0]
+
+    fullUrl = fullUrl + "/ref=cm_cr_arp_d_paging_btm_next_2?pageNumber="
+
+    commentCounter = 1
+    commentList = []
+    commentDateList = []
+    countryStatus = False
+
+    while commentCounter <= round(int(numberOfComment)/10) + 1:
+        commentUrl = fullUrl + str(commentCounter)
+        browser.get(commentUrl)
+        time.sleep(1)
+        commentDates = browser.find_elements_by_css_selector(".review-date")
+        comments = browser.find_elements_by_css_selector(".review-text-content")
+
+        for comment in range(len(comments)):
+            try:
+                countryOne = commentDates[comment].text.split(" ")[4]
+                countryTwo = commentDates[comment].text.split(" ")[0]
+                countryTR = browser.find_elements_by_tag_name("h3")
+                if countryTR[1].text == "Diğer ülkelerden":
+                    countryStatus = True
+            except: pass
+
+            if countryStatus == False:
+                if countryTwo.split("’")[0] == "Türkiye":
+                    countryTwo = commentDates[comment].text.split(" ")[0]
+                    countryTwo = countryTwo.split("’")[0]
+
+                    commentList.append(comments[comment].text)
+                    commentDateList.append(" ".join(commentDates[comment].text.split(" ")[1:4]))
+                    countryTwo = None
+
+
+                elif countryOne.split("’")[0] == "Türkiye":
+                    countryOne = commentDates[comment].text.split(" ")[4]
+                    countryOne = countryOne.split("’")[0]
+
+                    commentList.append(comments[comment].text)
+                    commentDateList.append(" ".join(commentDates[comment].text.split(" ")[0:3]))
+                    countryOne = None
+            else: break
+
+        time.sleep(2)
+        commentCounter += 1
+        if countryStatus == True: break
+
+    df = pd.DataFrame(
+        {
+            "dates": commentDateList,
+            "comments": commentList
+        }
+    )
+    time.sleep(1)
+    browser.close()
+    return df
