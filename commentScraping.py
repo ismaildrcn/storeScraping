@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 # Form implementation generated from reading ui file 'commentScraping.ui'
 #
@@ -11,7 +12,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from storeScraping.scraping import trendyolScraping, hepsiburadaScraping, amazonTrScraping
 import time
-import pandas as pd
+import glob
 
 
 class Ui_MainWindow(object):
@@ -245,12 +246,15 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        self.saveButtonStatus(False)
+
         try:
             self.pushButtonStart.clicked.connect(self.readURL)
         except:
             self.processInfo("Something went wrong")
 
-    def message(self, mType, message, buttonStatus = QtWidgets.QMessageBox.Ok):
+    def message(self, mType, message, buttonStatusOk = False, buttonStatusYes = False, buttonStatusNo = False, buttonOpen = False, buttonCancel = False):
         messageBox = QtWidgets.QMessageBox()
         # <------ Information / Warning / Question / Critical ------>
         if mType == "Information":
@@ -264,13 +268,28 @@ class Ui_MainWindow(object):
 
         messageBox.setText(message)
         messageBox.setWindowTitle(mType)
-        messageBox.setStandardButtons(buttonStatus)
-        retval = messageBox.exec_()
+        if not buttonStatusOk == False:
+            messageBox.addButton(QtWidgets.QMessageBox.Ok)
+        if not buttonStatusYes == False:
+            messageBox.addButton(QtWidgets.QMessageBox.Yes)
+        if not buttonStatusNo == False:
+            messageBox.addButton(QtWidgets.QMessageBox.No)
+        if not buttonOpen == False:
+            messageBox.addButton(QtWidgets.QPushButton("Open"), QtWidgets.QMessageBox.YesRole)
+        if not buttonCancel == False:
+            messageBox.addButton(QtWidgets.QPushButton("Cancel"), QtWidgets.QMessageBox.NoRole)
 
+        retval = messageBox.exec_()
+        return retval
+
+    def messageButton(self,messageBox,):
+        open = QtWidgets.QPushButton("Open")
+        messageBox.addButton(QtWidgets.QPushButton("Open"), QtWidgets.QMessageBox.YesRole)
+        messageBox.addButton(QtWidgets.QPushButton("Cancel"), QtWidgets.QMessageBox.NoRole)
     def readURL(self):
         lastTime = time.time()
         if self.lineEditUrl.text() == "":
-            self.message("Warning", "Please enter a link")
+            self.message("Warning", "Please enter a link",buttonStatusOk=True)
 
         else:
             url = self.lineEditUrl.text().split("/")[2]
@@ -284,6 +303,8 @@ class Ui_MainWindow(object):
                     """.format(df.head())
                     self.processInfo("Extracting data from Trendyol has been successfully completed.")
                     self.textBrowserSomeData.setText(writeDf.lstrip())
+                    self.saveButtonStatus(True)
+
             elif url == "www.hepsiburada.com":
                 timeIsUp = self.timer(lastTime, 2)
                 if timeIsUp == True:
@@ -293,6 +314,7 @@ class Ui_MainWindow(object):
                     """.format(df.head())
                     self.processInfo("Extracting data from Hepsiburada has been successfully completed.")
                     self.textBrowserSomeData.setText(writeDf.lstrip())
+                    self.saveButtonStatus(True)
 
             elif url == "www.amazon.com.tr":
                 timeIsUp = self.timer(lastTime, 2)
@@ -304,11 +326,16 @@ class Ui_MainWindow(object):
                     """.format(df.head())
                     self.processInfo("Extracting data from Amazon Türkiye has been successfully completed.")
                     self.textBrowserSomeData.setText(writeDf.lstrip())
-
+                    self.saveButtonStatus(True)
 
             else:
                 self.message("Critical",
                              "The link you entered is out of the workspace!\nPlease try to scrape data only for Trendyol, Hepsiburada and N11.\nYour link: {}".format(url))
+
+            self.pushButtonSaveCSV.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"CSV"))
+            self.pushButtonSaveTXT.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"TXT"))
+            self.pushButtonSaveEXCEL.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"EXCEL"))
+
 
     def processInfo(self,process):
         self.textBrowserOngoing.clear()
@@ -320,6 +347,66 @@ class Ui_MainWindow(object):
             elif time.time() - lastTime > delay:
                 timeIsUp = True
                 return timeIsUp
+
+    def saveData(self, data, source, saveFormat):
+        dataPath = "data\\"
+        if saveFormat == "CSV":
+            fileName = "./data/{}.csv".format(source)
+            data.to_csv(fileName, encoding='UTF-8')
+            self.processInfo("The data has been saved. {}.{}".format(source,saveFormat.lower()))
+            time.sleep(2)
+            returnButton = self.message("Information",
+                                        "Registration done successfully: {}\nDo you want to open the file?".format(
+                                        str(source) + str(saveFormat)),
+                                        buttonOpen=True,buttonCancel=True)
+            latestFile = self.saveOpen(dataPath)
+            if returnButton == 0:
+                try:
+                    os.startfile(latestFile)
+                except: pass
+
+        elif saveFormat == "TXT":
+            fileName = "./data/{}.txt".format(source)
+            data.to_csv(fileName)
+            self.processInfo("The data has been saved. {}.{}".format(source, saveFormat.lower()))
+            time.sleep(2)
+            returnButton = self.message("Information",
+                                        "Registration done successfully: {}\nDo you want to open the file?".format(
+                                            str(source) + str(saveFormat)),
+                                        buttonOpen=True, buttonCancel=True)
+            latestFile = self.saveOpen(dataPath)
+            if returnButton == 0:
+                try:
+                    os.startfile(latestFile)
+                except: pass
+
+        elif saveFormat == "EXCEL":
+            fileName = "./data/{}.xlsx".format(source)
+            data.to_excel(fileName)
+            self.processInfo("The data has been saved. {}.{}".format(source, saveFormat.lower()))
+            time.sleep(2)
+            returnButton = self.message("Information",
+                                        "Registration done successfully: {}\nDo you want to open the file?".format(
+                                            str(source) + str(saveFormat)),
+                                        buttonOpen=True, buttonCancel=True)
+            latestFile = self.saveOpen(dataPath)
+            if returnButton == 0:
+                try:
+                    os.startfile(latestFile)
+                except: pass
+
+        return fileName
+
+    def saveOpen(self,dataPath):
+        files = os.listdir(dataPath)
+        paths = [os.path.join(dataPath, basename) for basename in files]
+        latestFile = max(paths, key=os.path.getctime)
+        return latestFile
+
+    def saveButtonStatus(self,status):
+        self.pushButtonSaveCSV.setEnabled(status)
+        self.pushButtonSaveTXT.setEnabled(status)
+        self.pushButtonSaveEXCEL.setEnabled(status)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
