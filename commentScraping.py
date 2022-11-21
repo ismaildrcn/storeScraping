@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from storeScraping.scraping import trendyolScraping, hepsiburadaScraping
+from storeScraping.scraping import trendyolScraping, hepsiburadaScraping, amazonTrScraping
 import time
 import pandas as pd
 
@@ -275,7 +275,7 @@ class Ui_MainWindow(object):
         else:
             url = self.lineEditUrl.text().split("/")[2]
             if url == "www.trendyol.com":
-                timeIsUp = self.timer(lastTime, 3)
+                timeIsUp = self.timer(lastTime, 2)
                 print(lastTime)
                 if timeIsUp == True:
                     df = trendyolScraping(str(self.lineEditUrl.text()))
@@ -285,7 +285,7 @@ class Ui_MainWindow(object):
                     self.processInfo("Extracting data from Trendyol has been successfully completed.")
                     self.textBrowserSomeData.setText(writeDf.lstrip())
             elif url == "www.hepsiburada.com":
-                timeIsUp = self.timer(lastTime, 3)
+                timeIsUp = self.timer(lastTime, 2)
                 if timeIsUp == True:
                     df = hepsiburadaScraping(self.lineEditUrl.text())
                     writeDf = """
@@ -294,8 +294,17 @@ class Ui_MainWindow(object):
                     self.processInfo("Extracting data from Hepsiburada has been successfully completed.")
                     self.textBrowserSomeData.setText(writeDf.lstrip())
 
-            elif url == "www.n11.com":
-                self.processInfo("Systems are being prepared to extract data from N11.")
+            elif url == "www.amazon.com.tr":
+                timeIsUp = self.timer(lastTime, 2)
+                print(lastTime)
+                if timeIsUp == True:
+                    df = amazonTrScraping(str(self.lineEditUrl.text()))
+                    writeDf = """
+                    {}
+                    """.format(df.head())
+                    self.processInfo("Extracting data from Amazon Türkiye has been successfully completed.")
+                    self.textBrowserSomeData.setText(writeDf.lstrip())
+
 
             else:
                 self.message("Critical",
