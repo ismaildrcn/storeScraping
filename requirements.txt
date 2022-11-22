@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+
+# github.com/ismaildrcn/storeScraping
+
+numpy==1.21.5
+pandas==1.4.4
+pyqt5==5.15.4
+selenium==3.141.0
