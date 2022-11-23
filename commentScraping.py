@@ -7,9 +7,12 @@ from storeScraping.scraping import trendyolScraping, hepsiburadaScraping, amazon
 import time
 import os
 
-
+global fileIndex
+fileIndex = 0
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(780, 440)
         MainWindow.setMinimumSize(QtCore.QSize(780, 440))
@@ -281,6 +284,7 @@ class Ui_MainWindow(object):
         messageBox.addButton(QtWidgets.QPushButton("Open"), QtWidgets.QMessageBox.YesRole)
         messageBox.addButton(QtWidgets.QPushButton("Cancel"), QtWidgets.QMessageBox.NoRole)
     def readURL(self):
+        global fileIndex
         lastTime = time.time()
         if self.lineEditUrl.text() == "":
             self.message("Warning", "Please enter a link",buttonStatusOk=True)
@@ -296,7 +300,6 @@ class Ui_MainWindow(object):
                     {}
                     """.format(df.head())
                     self.processInfo("Extracting data from Trendyol has been successfully completed.")
-                    self.textBrowserSomeData.setText(writeDf.lstrip())
                     self.saveButtonStatus(True)
 
             elif url == "www.hepsiburada.com":
@@ -307,7 +310,6 @@ class Ui_MainWindow(object):
                     {}
                     """.format(df.head())
                     self.processInfo("Extracting data from Hepsiburada has been successfully completed.")
-                    self.textBrowserSomeData.setText(writeDf.lstrip())
                     self.saveButtonStatus(True)
 
             elif url == "www.amazon.com.tr":
@@ -319,16 +321,18 @@ class Ui_MainWindow(object):
                     {}
                     """.format(df.head())
                     self.processInfo("Extracting data from Amazon Türkiye has been successfully completed.")
-                    self.textBrowserSomeData.setText(writeDf.lstrip())
                     self.saveButtonStatus(True)
 
             else:
                 self.message("Critical",
                              "The link you entered is out of the workspace!\nPlease try to scrape data only for Trendyol, Hepsiburada and N11.\nYour link: {}".format(url))
 
-            self.pushButtonSaveCSV.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"CSV"))
-            self.pushButtonSaveTXT.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"TXT"))
-            self.pushButtonSaveEXCEL.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"EXCEL"))
+            self.textBrowserSomeData.setText(writeDf.lstrip())
+
+            self.pushButtonSaveCSV.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"CSV", fileIndex=fileIndex))
+            self.pushButtonSaveTXT.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"TXT", fileIndex=fileIndex))
+            self.pushButtonSaveEXCEL.clicked.connect(lambda: self.saveData(df, url.split(".")[1],"EXCEL", fileIndex=fileIndex))
+        fileIndex += 1
 
 
     def processInfo(self,process):
@@ -342,11 +346,11 @@ class Ui_MainWindow(object):
                 timeIsUp = True
                 return timeIsUp
 
-    def saveData(self, data, source, saveFormat):
+    def saveData(self, data, source, saveFormat, fileIndex):
         dataPath = "data"
         if saveFormat == "CSV":
-            fileName = "data\\{}.csv".format(source)
-            data.to_csv(fileName, encoding='UTF-8')
+            fileName = "data\\{}_{}.csv".format(source, fileIndex)
+            data.to_csv(fileName, index=False, encoding='utf-8-sig')
             self.processInfo("The data has been saved. {}.{}".format(source,saveFormat.lower()))
             time.sleep(2)
             returnButton = self.message("Information",
@@ -360,8 +364,8 @@ class Ui_MainWindow(object):
                 except: pass
 
         elif saveFormat == "TXT":
-            fileName = "data\\{}.txt".format(source)
-            data.to_csv(fileName)
+            fileName = "data\\{}_{}.txt".format(source, fileIndex)
+            data.to_csv(fileName, index=False, encoding='utf-8-sig')
             self.processInfo("The data has been saved. {}.{}".format(source, saveFormat.lower()))
             time.sleep(2)
             returnButton = self.message("Information",
@@ -375,8 +379,8 @@ class Ui_MainWindow(object):
                 except: pass
 
         elif saveFormat == "EXCEL":
-            fileName = "data\\{}.xlsx".format(source)
-            data.to_excel(fileName)
+            fileName = "data\\{}_{}.xlsx".format(source, fileIndex)
+            data.to_excel(fileName, index=False, encoding='utf-8-sig')
             self.processInfo("The data has been saved. {}.{}".format(source, "xlsx"))
             time.sleep(2)
             returnButton = self.message("Information",
@@ -388,7 +392,6 @@ class Ui_MainWindow(object):
                 try:
                     os.startfile(latestFile)
                 except: pass
-
         return fileName
 
     def saveOpen(self,dataPath):
