@@ -33,7 +33,7 @@ def trendyolScraping(url):
 
     df = pd.DataFrame(
         {
-            "dates": commentDateList,
+            #"dates": commentDateList,
             "comments": commentList
         }
     )
@@ -77,7 +77,7 @@ def hepsiburadaScraping(url):
 
     df = pd.DataFrame(
         {
-            "dates": commentDateList,
+            #"dates": commentDateList,
             "comments": commentList
         }
     )
@@ -142,7 +142,7 @@ def amazonTrScraping(url):
 
     df = pd.DataFrame(
         {
-            "dates": commentDateList,
+            #"dates": commentDateList,
             "comments": commentList
         }
     )
