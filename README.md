@@ -17,7 +17,7 @@ Kullanmak için terminale aşağıdaki komutu girmeniz yeterlidir.
   
 `python commentScraping.py`
   
-Açılan kullanıcı arayüzüne bağlantıyı girerek `Start` a tıklamanız yeterlidir.  Ardından arkanıza yaslanarak verilerin bir bir size gtelmesini beklemelisiniz. Some Data alanında head veriler göründükten sonra seçtiğiniz formatta verilerinizi kaydedebilirsiniz.
+Açılan kullanıcı arayüzüne bağlantıyı girerek `Start` a tıklamanız yeterlidir.  Ardından arkanıza yaslanarak verilerin bir bir size gelmesini beklemelisiniz. Some Data alanında head veriler göründükten sonra seçtiğiniz formatta verilerinizi kaydedebilirsiniz.
 
 ### Bazı Görseller
 ![Kullanıcı Arayüzü](https://github.com/ismaildrcn/storeScraping/blob/master/commentScrapingPanel.png)
